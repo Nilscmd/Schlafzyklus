@@ -29,7 +29,7 @@
   .app{
     width: 100%; max-width: 480px; min-height: 100%;
     padding: 28px 22px 40px;
-    display: flex; flex-direction: column; gap: 26px;
+    display: flex; flex-direction: column; gap: 24px;
   }
   header{ display: flex; align-items: center; justify-content: space-between; padding-top: 6px; }
   header h1{ font-size: 21px; font-weight: 650; letter-spacing: -0.01em; margin: 0; }
@@ -44,24 +44,6 @@
   }
   .info-btn:active{ opacity: .6; }
 
-  .segmented{
-    position: relative; display: grid; grid-template-columns: 1fr 1fr;
-    background: var(--surface); border: 1px solid var(--line);
-    border-radius: 14px; padding: 4px;
-  }
-  .segmented button{
-    position: relative; z-index: 1; appearance: none; border: none; background: transparent;
-    color: var(--text-dim); font-family: inherit; font-size: 14.5px; font-weight: 550;
-    padding: 10px 8px; border-radius: 10px; cursor: pointer; transition: color .25s ease;
-  }
-  .segmented button.active{ color: #1A1418; }
-  .segmented .thumb{
-    position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px);
-    background: var(--accent); border-radius: 10px;
-    transition: transform .28s cubic-bezier(.4,0,.2,1);
-  }
-  .segmented.mode-target .thumb{ transform: translateX(100%); }
-
   .target-input{
     display: flex; align-items: center; justify-content: space-between;
     background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px;
@@ -73,20 +55,29 @@
   }
 
   .hero{
-    position: relative; border-radius: 22px; padding: 34px 24px 28px; text-align: center;
+    position: relative; border-radius: 20px; padding: 26px 22px 22px; text-align: center;
     overflow: hidden; cursor: pointer;
-    background: radial-gradient(120% 100% at 50% -10%, rgba(232,160,82,0.16), transparent 60%), var(--surface);
+    background: radial-gradient(120% 100% at 50% -10%, rgba(232,160,82,0.10), transparent 60%), var(--surface);
     border: 1px solid var(--line);
     transition: transform .12s ease, background .12s ease;
   }
-  .hero:active{ transform: scale(0.98); background: radial-gradient(120% 100% at 50% -10%, rgba(232,160,82,0.22), transparent 60%), #221A26; }
-  .hero-label{ margin: 0 0 14px; font-size: 14px; color: var(--text-dim); }
-  .hero-time{ margin: 0; font-size: 66px; line-height: 1; font-weight: 680; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: var(--accent); }
-  .hero-sub{ margin: 16px 0 0; font-size: 17px; font-weight: 560; color: var(--text); }
-  .hero-cycles{ margin: 4px 0 0; font-size: 14px; color: var(--text-faint); }
+  .hero:active{ transform: scale(0.98); background: radial-gradient(120% 100% at 50% -10%, rgba(232,160,82,0.16), transparent 60%), #221A26; }
+  .hero-label{ margin: 0 0 10px; font-size: 14px; color: var(--text-dim); }
+  .hero-time{
+    margin: 6px 0 0;
+    font-size: clamp(34px, 11vw, 44px);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+    color: var(--accent);
+    padding-top: 2px;
+  }
+  .hero-sub{ margin: 12px 0 0; font-size: 16px; font-weight: 560; color: var(--text); }
+  .hero-cycles{ margin: 3px 0 0; font-size: 13.5px; color: var(--text-faint); }
   .hero-tap-hint{
     display: flex; align-items: center; justify-content: center; gap: 6px;
-    margin: 18px 0 0; font-size: 12.5px; color: var(--text-faint);
+    margin: 14px 0 0; font-size: 12.5px; color: var(--text-faint);
   }
 
   .options-label{ margin: 0 0 10px 4px; font-size: 14px; color: var(--text-faint); }
@@ -142,8 +133,6 @@
     z-index: 30; pointer-events: none; text-align: center;
   }
   .toast.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  @media (max-width: 340px){ .hero-time{ font-size: 56px; } }
 </style>
 </head>
 <body>
@@ -156,19 +145,13 @@
       </div>
     </header>
 
-    <div class="segmented" id="segmented">
-      <div class="thumb"></div>
-      <button class="active" id="btnNow" type="button">Jetzt schlafen</button>
-      <button id="btnTarget" type="button">Aufwachzeit</button>
-    </div>
-
-    <div class="target-input" id="targetInputWrap" hidden>
+    <div class="target-input">
       <label for="wakeInput">Ich will aufwachen um</label>
       <input type="time" id="wakeInput">
     </div>
 
     <section class="hero" id="hero" role="button" tabindex="0">
-      <p class="hero-label" id="heroLabel">Wecker stellen für</p>
+      <p class="hero-label">Geh ins Bett um</p>
       <p class="hero-time" id="heroTime">--:--</p>
       <p class="hero-sub" id="heroSub">-- Std Schlaf</p>
       <p class="hero-cycles" id="heroCycles">5 Schlafzyklen</p>
@@ -214,15 +197,9 @@
   var HIGHLIGHT_CYCLES = 5;
   var SHORTCUT_NAME = 'Wecker stellen';
 
-  var mode = 'now';
-  var segmented = document.getElementById('segmented');
-  var btnNow = document.getElementById('btnNow');
-  var btnTarget = document.getElementById('btnTarget');
-  var targetWrap = document.getElementById('targetInputWrap');
   var wakeInput = document.getElementById('wakeInput');
   var liveClock = document.getElementById('liveClock');
   var heroEl = document.getElementById('hero');
-  var heroLabel = document.getElementById('heroLabel');
   var heroTime = document.getElementById('heroTime');
   var heroSub = document.getElementById('heroSub');
   var heroCycles = document.getElementById('heroCycles');
@@ -250,7 +227,6 @@
   }
 
   function openAlarmShortcut(timeStr){
-    try{ localStorage.setItem('schlafzyklus_setup_seen', '1'); }catch(e){}
     showToast('Öffne Kurzbefehl „' + SHORTCUT_NAME + '“ für ' + timeStr);
     var url = 'shortcuts://run-shortcut?name=' + encodeURIComponent(SHORTCUT_NAME) + '&input=text&text=' + encodeURIComponent(timeStr);
     window.location.href = url;
@@ -264,19 +240,14 @@
   }
 
   function openSheet(){ sheetBackdrop.classList.add('open'); }
-  function closeSheet(){
-    sheetBackdrop.classList.remove('open');
-    try{ localStorage.setItem('schlafzyklus_setup_seen', '1'); }catch(e){}
-  }
+  function closeSheet(){ sheetBackdrop.classList.remove('open'); }
   infoBtn.addEventListener('click', openSheet);
   sheetClose.addEventListener('click', closeSheet);
   sheetBackdrop.addEventListener('click', function(e){ if(e.target === sheetBackdrop) closeSheet(); });
 
   function loadSaved(){
     try{
-      var savedMode = localStorage.getItem('schlafzyklus_mode');
       var savedWake = localStorage.getItem('schlafzyklus_wake');
-      if(savedMode === 'target') mode = 'target';
       if(savedWake) wakeInput.value = savedWake;
     }catch(e){}
     if(!wakeInput.value){
@@ -285,23 +256,8 @@
     }
   }
   function save(){
-    try{
-      localStorage.setItem('schlafzyklus_mode', mode);
-      localStorage.setItem('schlafzyklus_wake', wakeInput.value);
-    }catch(e){}
+    try{ localStorage.setItem('schlafzyklus_wake', wakeInput.value); }catch(e){}
   }
-
-  function setMode(next){
-    mode = next;
-    segmented.classList.toggle('mode-target', mode === 'target');
-    btnNow.classList.toggle('active', mode === 'now');
-    btnTarget.classList.toggle('active', mode === 'target');
-    targetWrap.hidden = (mode !== 'target');
-    save();
-    render();
-  }
-  btnNow.addEventListener('click', function(){ setMode('now'); });
-  btnTarget.addEventListener('click', function(){ setMode('target'); });
   wakeInput.addEventListener('input', function(){ save(); render(); });
 
   heroEl.addEventListener('click', function(){ if(currentHeroTimeStr) openAlarmShortcut(currentHeroTimeStr); });
@@ -349,53 +305,27 @@
     optionsList.innerHTML = '';
     footnote.textContent = 'Antippen stellt den Wecker automatisch · inkl. ' + FALL_ASLEEP_MIN + ' Min. zum Einschlafen';
 
-    if(mode === 'now'){
-      heroLabel.textContent = 'Wecker stellen für';
-      var now = new Date();
-      var bedtime = new Date(now.getTime() + FALL_ASLEEP_MIN * 60000);
-      CYCLE_OPTIONS.forEach(function(n){
-        var wake = new Date(bedtime.getTime() + n * CYCLE_MIN * 60000);
-        if(n === HIGHLIGHT_CYCLES){
-          currentHeroTimeStr = fmt(wake);
-          heroTime.textContent = currentHeroTimeStr;
-          heroSub.textContent = fmtHours(n * CYCLE_MIN) + ' Schlaf';
-          heroCycles.textContent = n + ' Schlafzyklen';
-        }else{
-          optionsList.appendChild(buildOptionRow(wake, n));
-        }
-      });
-    }else{
-      heroLabel.textContent = 'Geh ins Bett um';
-      var target = parseTargetDate();
-      CYCLE_OPTIONS.forEach(function(n){
-        var bedTime = new Date(target.getTime() - (n * CYCLE_MIN + FALL_ASLEEP_MIN) * 60000);
-        if(n === HIGHLIGHT_CYCLES){
-          currentHeroTimeStr = fmt(bedTime);
-          heroTime.textContent = currentHeroTimeStr;
-          heroSub.textContent = fmtHours(n * CYCLE_MIN) + ' Schlaf';
-          heroCycles.textContent = n + ' Schlafzyklen';
-        }else{
-          optionsList.appendChild(buildOptionRow(bedTime, n));
-        }
-      });
-    }
+    var target = parseTargetDate();
+    CYCLE_OPTIONS.forEach(function(n){
+      var bedTime = new Date(target.getTime() - (n * CYCLE_MIN + FALL_ASLEEP_MIN) * 60000);
+      if(n === HIGHLIGHT_CYCLES){
+        currentHeroTimeStr = fmt(bedTime);
+        heroTime.textContent = currentHeroTimeStr;
+        heroSub.textContent = fmtHours(n * CYCLE_MIN) + ' Schlaf';
+        heroCycles.textContent = n + ' Schlafzyklen';
+      }else{
+        optionsList.appendChild(buildOptionRow(bedTime, n));
+      }
+    });
   }
 
   function tickClock(){ liveClock.textContent = fmt(new Date()); }
 
   loadSaved();
-  setMode(mode);
   tickClock();
   render();
 
-  var seenSetup = false;
-  try{ seenSetup = localStorage.getItem('schlafzyklus_setup_seen') === '1'; }catch(e){}
-  if(!seenSetup){ setTimeout(openSheet, 400); }
-
-  setInterval(function(){
-    tickClock();
-    if(mode === 'now') render();
-  }, 30000);
+  setInterval(tickClock, 30000);
 })();
 </script>
 </body>
